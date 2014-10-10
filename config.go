@@ -3,17 +3,23 @@ package main
 import (
 	"gopkg.in/yaml.v2"
 	ioutil "io/ioutil"
+	"strings"
 )
 
-func ParseCircletYaml(path string) CircletSchema {
+func ParseCircletYaml(path string, properties map[string]string) CircletSchema {
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
+	var replaced = string(data)
+	for key, value := range properties {
+		replaced = strings.Replace(replaced, "${"+key+"}", value, -1)
+	}
+
 	var circlet CircletSchema
-	yaml.Unmarshal(data, &circlet)
+	yaml.Unmarshal([]byte(replaced), &circlet)
 
 	return circlet
 }

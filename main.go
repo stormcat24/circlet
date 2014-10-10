@@ -5,6 +5,7 @@ import (
 	optarg "github.com/jteeuwen/go-pkg-optarg"
 	. "github.com/str1ngs/ansi/color"
 	os "os"
+	"regexp"
 	"strings"
 )
 
@@ -41,11 +42,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO parse properties string
 	// TODO execute specified job
-	fmt.Println(properties)
+	tokens := strings.Split(properties, "|")
+	matcher := regexp.MustCompile("^(.+)\\s*=\\s*(.+)$")
+	propertyMap := make(map[string]string)
+	for _, token := range tokens {
+		s := strings.TrimSpace(token)
+		group := matcher.FindSubmatch([]byte(s))
+		if len(group) > 1 {
+			if len(group) > 2 {
+				propertyMap[string(group[1])] = string(group[2])
+			} else {
+				propertyMap[string(group[1])] = ""
+			}
+		}
+	}
 
-	result := ParseCircletYaml(configPath)
+	result := ParseCircletYaml(configPath, propertyMap)
 	fmt.Println(result)
 
 }
