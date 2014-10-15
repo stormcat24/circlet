@@ -1,0 +1,15 @@
+jobs:
+  build_test:
+    description: build ${branch}
+    endpoint: /project/stormcat24/circlet/tree/${branch}
+    method: POST
+    build_parameters:
+      param1: param1Value
+      param2: param2Value
+  retry_test:
+    description: retry build!!
+    endpoint: /project/${repository}/${build_num}/retry
+    method: POST
+setting:
+  api_host: circleci.com
+  api_token: WRITE_YOUR_TOKEN_HERE

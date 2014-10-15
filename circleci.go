@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,28 +12,28 @@ func CircleCIApiFactory(setting CircletSetting, job CircletJob) CircleCIApi {
 	url := fmt.Sprintf("https://%s/api/v1%s", setting.ApiHost, job.Endpoint)
 
 	var queryParams map[string]string
-	if job.Parameters != nil {
-		queryParams = job.Parameters
+	if job.QueryParameters != nil {
+		queryParams = job.QueryParameters
 	} else {
 		queryParams = make(map[string]string)
 	}
 	queryParams["circle-token"] = setting.ApiToken
 
-	var formData map[string]string
-	if job.FormData != nil {
-		formData = job.FormData
+	var buildParams map[string]string
+	if job.BuildParameters != nil {
+		buildParams = job.BuildParameters
 	} else {
-		formData = make(map[string]string)
+		buildParams = make(map[string]string)
 	}
 
-	return CircleCIApi{url: url, method: job.Method, queryParams: queryParams, formData: formData}
+	return CircleCIApi{url: url, method: job.Method, queryParams: queryParams, buildParams: buildParams}
 }
 
 type CircleCIApi struct {
 	url         string
 	method      string
 	queryParams map[string]string
-	formData    map[string]string
+	buildParams map[string]string
 }
 
 type CircleCIApiClient interface {
@@ -56,15 +57,20 @@ func (self *CircleCIApi) ExecuteRequest() (*http.Response, error) {
 	}
 
 	requestUrl := self.url + queryBuffer.String()
+
+	serialized, _ := json.Marshal(self.buildParams)
+	json := fmt.Sprintf("{\"build_parameters\": %s}", string(serialized))
+
 	fmt.Println("----------[REQUEST]----------")
 	fmt.Printf(" URL: %s \n", requestUrl)
 	fmt.Printf(" METHOD: %s \n", self.method)
+	fmt.Printf(" DATA: %s \n", json)
 	fmt.Println("")
 
-	req, _ := http.NewRequest(self.method, requestUrl, nil)
+	req, _ := http.NewRequest(self.method, requestUrl, bytes.NewReader([]byte(json)))
 	req.Header.Add("User-Agent", "Circlet")
 	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
 
-	// TODO FORM
 	return client.Do(req)
 }

@@ -74,11 +74,11 @@ func (self *Circlet) Execute(jobName string) error {
 }
 
 type CircletJob struct {
-	Description string            `yaml:"description"`
-	Endpoint    string            `yaml:"endpoint"`
-	Method      string            `yaml:"method"`
-	Parameters  map[string]string `yaml:"parameters"`
-	FormData    map[string]string `yaml:"form_data"`
+	Description     string            `yaml:"description"`
+	Endpoint        string            `yaml:"endpoint"`
+	Method          string            `yaml:"method"`
+	QueryParameters map[string]string `yaml:"query_parameters"`
+	BuildParameters map[string]string `yaml:"build_parameters"`
 }
 
 type CircletSetting struct {
