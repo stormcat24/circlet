@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-func init() {
-	fmt.Printf("### %s ###\n", Green("Circlet is support tool of CircleCI."))
-}
-
 func main() {
 
 	optarg.Add("c", "config", "circlet configuration file", "circlet.yml")
@@ -42,7 +38,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO execute specified job
 	tokens := strings.Split(properties, "|")
 	matcher := regexp.MustCompile("^(.+)\\s*=\\s*(.+)$")
 	propertyMap := make(map[string]string)
@@ -58,7 +53,15 @@ func main() {
 		}
 	}
 
-	result := ParseCircletYaml(configPath, propertyMap)
-	fmt.Println(result)
+	// TODO handling validation.
+	circlet, _ := CircletFactory(configPath, propertyMap)
+	jobError := circlet.Execute(job)
+	if jobError != nil {
+		fmt.Fprintln(os.Stderr, jobError.Error())
+		os.Exit(1)
+	} else {
+		fmt.Println("Success Job Execution!")
+		os.Exit(0)
+	}
 
 }

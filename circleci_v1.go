@@ -1,44 +1,70 @@
 package main
 
-import ()
-
-type HttpMethod int
-
-const (
-	GET HttpMethod = iota
-	POST
-	PUT
-	DELETE
+import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"net/url"
 )
 
-type V1Api struct {
-	endpoint string
-	method   HttpMethod
+func CircleCIApiFactory(setting CircletSetting, job CircletJob) CircleCIApi {
+	url := fmt.Sprintf("https://%s/api/v1%s", setting.ApiHost, job.Endpoint)
+
+	var queryParams map[string]string
+	if job.Parameters != nil {
+		queryParams = job.Parameters
+	} else {
+		queryParams = make(map[string]string)
+	}
+	queryParams["circle-token"] = setting.ApiToken
+
+	var formData map[string]string
+	if job.FormData != nil {
+		formData = job.FormData
+	} else {
+		formData = make(map[string]string)
+	}
+
+	return CircleCIApi{url: url, method: job.Method, queryParams: queryParams, formData: formData}
 }
 
-type user struct {
-	SelectedEmail     string             `json:"selected_email"`
-	AvatarUrl         string             `json:"avatar_url"`
-	TrialEnd          string             `json:"trial_end"`
-	Admin             bool               `json:"admin"`
-	BasicEmailPrefs   string             `json:"basic_email_prefs"`
-	SignInCount       int                `json:"sign_in_count"`
-	GithubOAuthScopes []string           `json:"github_oauth_scopes"`
-	Name              string             `json:"name"`
-	GravatarId        int64              `json:"gravatar_id"`
-	DaysLeftInTrial   int                `json:"days_left_in_trial"`
-	Parallelism       int                `json:"parallelism"`
-	GithubId          int64              `json:"github_id"`
-	AllEmails         []string           `json:"all_emails"`
-	CreatedAt         string             `json:"created_at"`
-	Plan              string             `json:"plan"`
-	HerokuApiKey      string             `json:"heroku_api_key"`
-	Projects          map[string]project `json:"projects"`
-	Login             string             `json:"login"`
-	Containers        int                `json:"containers"`
+type CircleCIApi struct {
+	url         string
+	method      string
+	queryParams map[string]string
+	formData    map[string]string
 }
 
-type project struct {
-	Emails      string `json:"emails"`
-	OnDashboard bool   `json:"on_dashboard"`
+type CircleCIApiClient interface {
+	ExecuteRequest() (string, error)
+}
+
+func (self *CircleCIApi) ExecuteRequest() (*http.Response, error) {
+
+	client := &http.Client{}
+
+	var queryBuffer bytes.Buffer
+	queryBuffer.WriteString("?")
+
+	for key, value := range self.queryParams {
+		queryBuffer.WriteString(key)
+		queryBuffer.WriteString("=")
+		if len(value) > 0 {
+			queryBuffer.WriteString(url.QueryEscape(value))
+		}
+		queryBuffer.WriteString("&")
+	}
+
+	requestUrl := self.url + queryBuffer.String()
+	fmt.Println("----------[REQUEST]----------")
+	fmt.Printf(" URL: %s \n", requestUrl)
+	fmt.Printf(" METHOD: %s \n", self.method)
+	fmt.Println("")
+
+	req, _ := http.NewRequest(self.method, requestUrl, nil)
+	req.Header.Add("User-Agent", "Circlet")
+	req.Header.Add("Accept", "application/json")
+
+	// TODO FORM
+	return client.Do(req)
 }
