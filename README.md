@@ -70,3 +70,7 @@ $ circlet -c path-to-path/circlet.yml -j build_test -p "branch=master"
 ```bash
 $ circlet -c path-to-path/circlet.yml -j retry_test -p "repository=stormcat/circlet|build_num=5"
 ```
+
+![optimized](https://raw.githubusercontent.com/stormcat24/circlet/master/circlet.gif)
+
+
