@@ -59,7 +59,7 @@ Execute defined job in circlet.yml by circlet.
 
 * -c: Path of circlet.yml
 * -j: Job name
-* -p: Parameters(Pipe-delimited)
+* -p: Replacable Parameters(Pipe-delimited)
 
 ##### Example
 * execute `build_test`
